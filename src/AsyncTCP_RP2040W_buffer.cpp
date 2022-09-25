@@ -12,13 +12,15 @@
   as published bythe Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License along with this program.  
+  If not, see <https://www.gnu.org/licenses/>.
  
-  Version: 1.0.0
+  Version: 1.1.0
   
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      13/08/2022 Initial coding for RP2040W with CYW43439 WiFi
+  1.1.0   K Hoang      25/09/2022 Fix issue with slow browsers or network. Clean up. Remove hard-code if possible
  *****************************************************************************************************************************/
 /**
  * @file  AsyncTCP_RP2040W_buffer.cpp
@@ -54,6 +56,8 @@
 
 #include "AsyncTCP_RP2040W_buffer.h"
 
+/////////////////////////////////////////////////////////
+
 AsyncTCPbuffer::AsyncTCPbuffer(AsyncClient* client) 
 {
   if (client == NULL)
@@ -77,6 +81,8 @@ AsyncTCPbuffer::AsyncTCPbuffer(AsyncClient* client)
   _cbDone = NULL;
   _attachCallbacks();
 }
+
+/////////////////////////////////////////////////////////
 
 AsyncTCPbuffer::~AsyncTCPbuffer() 
 {
@@ -113,25 +119,35 @@ AsyncTCPbuffer::~AsyncTCPbuffer()
   }
 }
 
+/////////////////////////////////////////////////////////
+
 size_t AsyncTCPbuffer::write(String & data) 
 {
   return write(data.c_str(), data.length());
 }
+
+/////////////////////////////////////////////////////////
 
 size_t AsyncTCPbuffer::write(uint8_t data) 
 {
   return write(&data, 1);
 }
 
+/////////////////////////////////////////////////////////
+
 size_t AsyncTCPbuffer::write(const char* data) 
 {
   return write((const uint8_t *) data, strlen(data));
 }
 
+/////////////////////////////////////////////////////////
+
 size_t AsyncTCPbuffer::write(const char *data, size_t len) 
 {
   return write((const uint8_t *) data, len);
 }
+
+/////////////////////////////////////////////////////////
 
 /**
    write data in to buffer and try to send the data
@@ -150,9 +166,10 @@ size_t AsyncTCPbuffer::write(const uint8_t *data, size_t len)
   
   while (bytesLeft) 
   {
-    size_t w = _TXbufferWrite->write((const char*) data, bytesLeft);
+    size_t w   = _TXbufferWrite->write((const char*) data, bytesLeft);
     bytesLeft -= w;
-    data += w;
+    data      += w;
+    
     _sendBuffer();
 
     // add new buffer since we have more data
@@ -189,6 +206,8 @@ size_t AsyncTCPbuffer::write(const uint8_t *data, size_t len)
 
 }
 
+/////////////////////////////////////////////////////////
+
 /**
    wait until all data has send out
 */
@@ -207,10 +226,14 @@ void AsyncTCPbuffer::flush()
   }
 }
 
+/////////////////////////////////////////////////////////
+
 void AsyncTCPbuffer::noCallback() 
 {
   _RXmode = ATB_RX_MODE_NONE;
 }
+
+/////////////////////////////////////////////////////////
 
 void AsyncTCPbuffer::readStringUntil(char terminator, String * str, AsyncTCPbufferDoneCb done) 
 {
@@ -220,6 +243,7 @@ void AsyncTCPbuffer::readStringUntil(char terminator, String * str, AsyncTCPbuff
   }
 
   ATCP_LOGDEBUG1("readStringUntil terminator:", terminator);
+  
   _RXmode = ATB_RX_MODE_NONE;
   _cbDone = done;
   _rxReadStringPtr = str;
@@ -228,15 +252,18 @@ void AsyncTCPbuffer::readStringUntil(char terminator, String * str, AsyncTCPbuff
   _RXmode = ATB_RX_MODE_TERMINATOR_STRING;
 }
 
+/////////////////////////////////////////////////////////
+
 /*
-  void AsyncTCPbuffer::readBytesUntil(char terminator, char *buffer, size_t length, AsyncTCPbufferDoneCb done) {
-  _RXmode = ATB_RX_MODE_NONE;
-  _cbDone = done;
-  _rxReadBytesPtr = (uint8_t *) buffer;
-  _rxTerminator = terminator;
-  _rxSize = length;
-  _RXmode = ATB_RX_MODE_TERMINATOR;
-  _handleRxBuffer(NULL, 0);
+  void AsyncTCPbuffer::readBytesUntil(char terminator, char *buffer, size_t length, AsyncTCPbufferDoneCb done) 
+  {
+    _RXmode = ATB_RX_MODE_NONE;
+    _cbDone = done;
+    _rxReadBytesPtr = (uint8_t *) buffer;
+    _rxTerminator = terminator;
+    _rxSize = length;
+    _RXmode = ATB_RX_MODE_TERMINATOR;
+    _handleRxBuffer(NULL, 0);
   }
 
   void AsyncTCPbuffer::readBytesUntil(char terminator, uint8_t *buffer, size_t length, AsyncTCPbufferDoneCb done) 
@@ -244,6 +271,8 @@ void AsyncTCPbuffer::readStringUntil(char terminator, String * str, AsyncTCPbuff
     readBytesUntil(terminator, (char *) buffer, length, done);
   }
 */
+
+/////////////////////////////////////////////////////////
 
 void AsyncTCPbuffer::readBytes(char *buffer, size_t length, AsyncTCPbufferDoneCb done) 
 {
@@ -260,10 +289,14 @@ void AsyncTCPbuffer::readBytes(char *buffer, size_t length, AsyncTCPbufferDoneCb
   _RXmode = ATB_RX_MODE_READ_BYTES;
 }
 
+/////////////////////////////////////////////////////////
+
 void AsyncTCPbuffer::readBytes(uint8_t *buffer, size_t length, AsyncTCPbufferDoneCb done) 
 {
   readBytes((char *) buffer, length, done);
 }
+
+/////////////////////////////////////////////////////////
 
 void AsyncTCPbuffer::onData(AsyncTCPbufferDataCb cb) 
 {
@@ -280,19 +313,26 @@ void AsyncTCPbuffer::onData(AsyncTCPbufferDataCb cb)
   _RXmode = ATB_RX_MODE_FREE;
 }
 
+/////////////////////////////////////////////////////////
+
 void AsyncTCPbuffer::onDisconnect(AsyncTCPbufferDisconnectCb cb) 
 {
   _cbDisconnect = cb;
 }
 
+/////////////////////////////////////////////////////////
+
 IPAddress AsyncTCPbuffer::remoteIP() 
 {
-  if (!_client) {
+  if (!_client) 
+  {
     return IPAddress(0, 0, 0, 0);
   }
   
   return _client->remoteIP();
 }
+
+/////////////////////////////////////////////////////////
 
 uint16_t AsyncTCPbuffer::remotePort() 
 {
@@ -304,6 +344,8 @@ uint16_t AsyncTCPbuffer::remotePort()
   return _client->remotePort();
 }
 
+/////////////////////////////////////////////////////////
+
 bool AsyncTCPbuffer::connected() 
 {
   if (!_client) 
@@ -313,6 +355,8 @@ bool AsyncTCPbuffer::connected()
   
   return _client->connected();
 }
+
+/////////////////////////////////////////////////////////
 
 void AsyncTCPbuffer::stop() 
 {
@@ -343,13 +387,14 @@ void AsyncTCPbuffer::stop()
   _RXmode = ATB_RX_MODE_NONE;
 }
 
+/////////////////////////////////////////////////////////
+
 void AsyncTCPbuffer::close() 
 {
   stop();
 }
 
-
-///--------------------------------
+/////////////////////////////////////////////////////////
 
 /**
    attachCallbacks to AsyncClient class
@@ -427,6 +472,8 @@ void AsyncTCPbuffer::_attachCallbacks()
   ATCP_LOGDEBUG("attachCallbacks Done.");
 }
 
+/////////////////////////////////////////////////////////
+
 /**
    send TX buffer if possible
 */
@@ -454,6 +501,7 @@ void AsyncTCPbuffer::_sendBuffer()
     if (out == NULL)
     {
       ATCP_LOGDEBUG("to less heap, try later.");
+      
       return;
     }
 
@@ -490,6 +538,8 @@ void AsyncTCPbuffer::_sendBuffer()
   }
 
 }
+
+/////////////////////////////////////////////////////////
 
 /**
    called on incoming data
@@ -566,12 +616,10 @@ void AsyncTCPbuffer::_rxData(uint8_t *buf, size_t len)
   {
     _RXbuffer->resize(100);
   }
-
 }
 
-/**
+/////////////////////////////////////////////////////////
 
-*/
 size_t AsyncTCPbuffer::_handleRxBuffer(uint8_t *buf, size_t len) 
 {
   if (!_client || !_client->connected() || _RXbuffer == NULL) 

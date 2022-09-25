@@ -1,6 +1,6 @@
 # AsyncTCP_RP2040W 
 
-[![arduino-library-badge](https://www.ardu-badge.com/badge/AsyncTCP_RP2040W.svg?)](https://www.ardu-badge.com/AsyncTCP_RP2040W)
+[![arduino-library-badge](http://www.ardu-badge.com/badge/AsyncTCP_RP2040W.svg?)](http://www.ardu-badge.com/AsyncTCP_RP2040W)
 [![GitHub release](https://img.shields.io/github/release/khoih-prog/AsyncTCP_RP2040W.svg)](https://github.com/khoih-prog/AsyncTCP_RP2040W/releases)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/AsyncTCP_RP2040W.svg)](http://github.com/khoih-prog/AsyncTCP_RP2040W/issues)
@@ -51,7 +51,7 @@ This library is based on, modified from:
 
 1. [Hristo Gochkov's ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP)
 
-to apply the better and faster **asynchronous** feature of the **powerful** [ESPAsyncTCP Library](https://github.com/me-no-dev/ESPAsyncTCP) into **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, and will be the base for future and more advanced Async libraries, such as AsyncWebServer_RP2040W, AsyncHTTPRequest_RP2040W, AsyncHTTPSRequest_RP2040W
+to apply the better and faster **asynchronous** feature of the **powerful** [ESPAsyncTCP Library](https://github.com/me-no-dev/ESPAsyncTCP) into **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, and will be the base for future and more advanced Async libraries, such as `AsyncWebServer_RP2040W`, `AsyncHTTPRequest_RP2040W`, `AsyncHTTPSRequest_RP2040W`
 
 
 #### Why Async is better
@@ -81,7 +81,7 @@ to apply the better and faster **asynchronous** feature of the **powerful** [ESP
 ## Prerequisites
 
  1. [`Arduino IDE 1.8.19+` for Arduino](https://github.com/arduino/Arduino). [![GitHub release](https://img.shields.io/github/release/arduino/Arduino.svg)](https://github.com/arduino/Arduino/releases/latest)
- 2. [`Earle Philhower's arduino-pico core v2.4.0+`](https://github.com/earlephilhower/arduino-pico) for **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, etc. [![GitHub release](https://img.shields.io/github/release/earlephilhower/arduino-pico.svg)](https://github.com/earlephilhower/arduino-pico/releases/latest)
+ 2. [`Earle Philhower's arduino-pico core v2.5.4+`](https://github.com/earlephilhower/arduino-pico) for **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, etc. [![GitHub release](https://img.shields.io/github/release/earlephilhower/arduino-pico.svg)](https://github.com/earlephilhower/arduino-pico/releases/latest)
 
 ---
 ---
@@ -98,9 +98,9 @@ You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/
 Another way to install is to:
 
 1. Navigate to [**AsyncTCP_RP2040W**](https://github.com/khoih-prog/AsyncTCP_RP2040W) page.
-2. Download the latest release `AsyncTCP_RP2040W-master.zip`.
-3. Extract the zip file to `AsyncTCP_RP2040W-master` directory 
-4. Copy whole `AsyncTCP_RP2040W-master` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
+2. Download the latest release `AsyncTCP_RP2040W-main.zip`.
+3. Extract the zip file to `AsyncTCP_RP2040W-main` directory 
+4. Copy whole `AsyncTCP_RP2040W-main` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
 
 ### VS Code & PlatformIO
 
@@ -114,11 +114,7 @@ Another way to install is to:
 
 ## Orignal documentation
 
-For ESP32, check [AsyncTCP Library](https://github.com/me-no-dev/AsyncTCP)
-
-[Join the ESPAsyncWebServer chat](https://gitter.im/me-no-dev/ESPAsyncWebServer)  [![Join the chat at https://gitter.im/me-no-dev/ESPAsyncWebServer](https://badges.gitter.im/me-no-dev/ESPAsyncWebServer.svg)](https://gitter.im/me-no-dev/ESPAsyncWebServer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-This is a fully asynchronous TCP library, aimed at enabling trouble-free, multi-connection network environment for Espressif's ESP8266 MCUs.
+Check [AsyncTCP Library](https://github.com/me-no-dev/AsyncTCP)
 
 ### AsyncClient and AsyncServer
 
@@ -138,6 +134,13 @@ This class is really similar to the `AsyncPrinter`, but it can buffer some of th
 
 It is exactly what it sounds like. This is a standard, synchronous blocking TCP Client you're used to.
 
+---
+---
+
+### Libraries currently depend on this library
+
+1. [AsyncWebServer_RP2040W](https://github.com/khoih-prog/AsyncWebServer_RP2040W) [![GitHub release](https://img.shields.io/github/release/khoih-prog/AsyncWebServer_RP2040W.svg)](https://github.com/khoih-prog/AsyncWebServer_RP2040W/releases/latest)
+2. [AsyncHTTPRequest_RP2040W](https://github.com/khoih-prog/AsyncHTTPRequest_RP2040W) [![GitHub release](https://img.shields.io/github/release/khoih-prog/AsyncHTTPRequest_RP2040W.svg)](https://github.com/khoih-prog/AsyncHTTPRequest_RP2040W/releases/latest)
 
 ---
 ---
@@ -166,7 +169,7 @@ Sometimes, the library will only work if you update the board core to the latest
 
 ### Issues
 
-Submit issues to: [AsyncTCP_RP2040W issues](https://github.com/khoih-prog/AsyncTCP_RP2040W/issues)
+Submit issues to: [AsyncTCP_RP2040W issues](https://github.com/khoih-prog/AsyncTCP_RP2040W/issues) 
 
 ---
 
@@ -222,6 +225,7 @@ If you want to contribute to this project:
 
 ## Copyright
 
-Copyright 2022- Khoi Hoang
+- Copyright 2016- Hristo Gochkov
+- Copyright 2022- Khoi Hoang
 
 

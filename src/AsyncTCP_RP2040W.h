@@ -12,13 +12,15 @@
   as published bythe Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License along with this program.  
+  If not, see <https://www.gnu.org/licenses/>.
  
-  Version: 1.0.0
+  Version: 1.1.0
   
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      13/08/2022 Initial coding for RP2040W with CYW43439 WiFi
+  1.1.0   K Hoang      25/09/2022 Fix issue with slow browsers or network. Clean up. Remove hard-code if possible
  *****************************************************************************************************************************/
 /*
   Asynchronous TCP library for Espressif MCUs
@@ -43,6 +45,8 @@
 
 #ifndef ASYNCTCP_RP2040W_H_
 #define ASYNCTCP_RP2040W_H_
+
+/////////////////////////////////////////////
 
 #if ( defined(ARDUINO_RASPBERRY_PI_PICO_W) )
       
@@ -69,31 +73,39 @@
     
 #endif
 
+/////////////////////////////////////////////
+
 #include "Arduino.h"
 
 // Default WiFi if not specified
 #define SHIELD_TYPE           "RP2040W CYW43439 WiFi"
 
-// KH tested for RP2040W
-//#include <WiFiClient.h>
 #include <WiFi.h>
 
-#define ASYNCTCP_RP2040W_VERSION            "AsyncTCP_RP2040W v1.0.0"
+/////////////////////////////////////////////
+
+#define ASYNCTCP_RP2040W_VERSION            "AsyncTCP_RP2040W v1.1.0"
 
 #define ASYNCTCP_RP2040W_VERSION_MAJOR      1
-#define ASYNCTCP_RP2040W_VERSION_MINOR      0
+#define ASYNCTCP_RP2040W_VERSION_MINOR      1
 #define ASYNCTCP_RP2040W_VERSION_PATCH      0
 
-#define ASYNCTCP_RP2040W_VERSION_INT        1000000
+#define ASYNCTCP_RP2040W_VERSION_INT        1001000
 
+/////////////////////////////////////////////
+
+#if ASYNC_TCP_SSL_ENABLED
+  #undef ASYNC_TCP_SSL_ENABLED
+  #define ASYNC_TCP_SSL_ENABLED			false
+  
+  #warning ASYNC_TCP_SSL_ENABLED is not ready yet. Disable it
+#endif
 
 #define DEBUG_ESP_ASYNC_TCP       true
 
+/////////////////////////////////////////////
 
 #include "AsyncTCP_RP2040W_Debug.h"
-
-//#include <mbed_config.h>
-#define MBED_CONF_LWIP_IPV4_ENABLED     1
 
 #include <async_config.h>
 #include "IPAddress.h"
@@ -106,24 +118,23 @@ extern "C"
   #include "lwip/err.h"
   #include "lwip/tcp.h"
   #include "lwip/pbuf.h"
-  
-  //#include "lwip/opt.h"
-  //#include "lwip/inet.h"
-  //#include "lwip/dns.h"
-  //#include "lwip/init.h"
 };
 
 #ifndef ASYNCTCP_RP2040W_UNUSED
   #define ASYNCTCP_RP2040W_UNUSED(x)       (void)(x)
 #endif
 
+/////////////////////////////////////////////////
+
 class AsyncClient;
 class AsyncServer;
 class ACErrorTracker;
 
-#define ASYNC_MAX_ACK_TIME 5000
-#define ASYNC_WRITE_FLAG_COPY 0x01 //will allocate new buffer to hold the data while sending (else will hold reference to the data given)
-#define ASYNC_WRITE_FLAG_MORE 0x02 //will not send PSH flag, meaning that there should be more data to be sent before the application should react.
+#define ASYNC_MAX_ACK_TIME      5000
+#define ASYNC_WRITE_FLAG_COPY   0x01    //to allocate new buffer to hold the data while sending
+#define ASYNC_WRITE_FLAG_MORE   0x02    //not send PSH flag. More data to be sent before the application should react.
+
+/////////////////////////////////////////////////
 
 struct tcp_pcb;
 
@@ -152,6 +163,8 @@ enum error_events
   EE_ACCEPT_CB,
   EE_MAX
 };
+
+/////////////////////////////////////////////////
 
 // DEBUG_MORE is for gathering more information on which CBs close events are
 // occuring and count.
@@ -215,6 +228,8 @@ class ACErrorTracker
     ACErrorTracker(AsyncClient *c);
     ~ACErrorTracker() {}
 };
+
+/////////////////////////////////////////////////
 
 class AsyncClient 
 {
@@ -414,11 +429,14 @@ class AsyncClient
     }
 };
 
+/////////////////////////////////////////////////
+
 #if ASYNC_TCP_SSL_ENABLED
   typedef std::function<int(void* arg, const char *filename, uint8_t **buf)> AcSSlFileHandler;
   struct pending_pcb;
 #endif
 
+/////////////////////////////////////////////////
 
 class AsyncServer 
 {
@@ -487,5 +505,6 @@ class AsyncServer
 #endif
 };
 
+/////////////////////////////////////////////////
 
 #endif /* ASYNCTCP_RP2040W_H_ */

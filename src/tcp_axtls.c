@@ -12,13 +12,15 @@
   as published bythe Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License along with this program.  
+  If not, see <https://www.gnu.org/licenses/>.
  
-  Version: 1.0.0
+  Version: 1.1.0
   
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      13/08/2022 Initial coding for RP2040W with CYW43439 WiFi
+  1.1.0   K Hoang      25/09/2022 Fix issue with slow browsers or network. Clean up. Remove hard-code if possible
  *****************************************************************************************************************************/
 /*
   Asynchronous TCP library for Espressif MCUs
@@ -70,6 +72,8 @@ uint16_t  default_certificate_len = 0;
 
 static uint8_t _tcp_ssl_has_client = 0;
 
+/////////////////////////////////////////////////////////
+
 SSL_CTX * tcp_ssl_new_server_ctx(const char *cert, const char *private_key_file, const char *password) 
 {
   uint32_t options = SSL_CONNECT_IN_PARTS;
@@ -114,6 +118,8 @@ SSL_CTX * tcp_ssl_new_server_ctx(const char *cert, const char *private_key_file,
   return ssl_ctx;
 }
 
+/////////////////////////////////////////////////////////
+
 struct tcp_ssl_pcb 
 {
   struct tcp_pcb *tcp;
@@ -137,10 +143,14 @@ typedef struct tcp_ssl_pcb tcp_ssl_t;
 static tcp_ssl_t * tcp_ssl_array = NULL;
 static int tcp_ssl_next_fd = 0;
 
+/////////////////////////////////////////////////////////
+
 uint8_t tcp_ssl_has_client() 
 {
   return _tcp_ssl_has_client;
 }
+
+/////////////////////////////////////////////////////////
 
 tcp_ssl_t * tcp_ssl_new(struct tcp_pcb *tcp) 
 {
@@ -155,6 +165,7 @@ tcp_ssl_t * tcp_ssl_new(struct tcp_pcb *tcp)
   if (!new_item) 
   {
     TCP_SSL_DEBUG("tcp_ssl_new: failed to allocate tcp_ssl\n");
+    
     return NULL;
   }
 
@@ -191,6 +202,8 @@ tcp_ssl_t * tcp_ssl_new(struct tcp_pcb *tcp)
   return new_item;
 }
 
+/////////////////////////////////////////////////////////
+
 tcp_ssl_t* tcp_ssl_get(struct tcp_pcb *tcp) 
 {
   if (tcp == NULL) 
@@ -207,6 +220,8 @@ tcp_ssl_t* tcp_ssl_get(struct tcp_pcb *tcp)
   
   return item;
 }
+
+/////////////////////////////////////////////////////////
 
 int tcp_ssl_new_client(struct tcp_pcb *tcp) 
 {
@@ -229,6 +244,7 @@ int tcp_ssl_new_client(struct tcp_pcb *tcp)
   if (ssl_ctx == NULL) 
   {
     TCP_SSL_DEBUG("tcp_ssl_new_client: failed to allocate ssl context\n");
+    
     return -1;
   }
 
@@ -237,6 +253,7 @@ int tcp_ssl_new_client(struct tcp_pcb *tcp)
   if (tcp_ssl == NULL) 
   {
     ssl_ctx_free(ssl_ctx);
+    
     return -1;
   }
 
@@ -248,11 +265,14 @@ int tcp_ssl_new_client(struct tcp_pcb *tcp)
   {
     TCP_SSL_DEBUG("tcp_ssl_new_client: failed to allocate ssl\n");
     tcp_ssl_free(tcp);
+    
     return -1;
   }
 
   return tcp_ssl->fd;
 }
+
+/////////////////////////////////////////////////////////
 
 int tcp_ssl_new_server(struct tcp_pcb *tcp, SSL_CTX* ssl_ctx) 
 {
@@ -271,6 +291,7 @@ int tcp_ssl_new_server(struct tcp_pcb *tcp, SSL_CTX* ssl_ctx)
   if (tcp_ssl_get(tcp) != NULL) 
   {
     TCP_SSL_DEBUG("tcp_ssl_new_server: tcp_ssl already exists\n");
+    
     return -1;
   }
 
@@ -291,11 +312,14 @@ int tcp_ssl_new_server(struct tcp_pcb *tcp, SSL_CTX* ssl_ctx)
   {
     TCP_SSL_DEBUG("tcp_ssl_new_server: failed to allocate ssl\n");
     tcp_ssl_free(tcp);
+    
     return -1;
   }
 
   return tcp_ssl->fd;
 }
+
+/////////////////////////////////////////////////////////
 
 int tcp_ssl_free(struct tcp_pcb *tcp) 
 {
@@ -363,6 +387,8 @@ int tcp_ssl_free(struct tcp_pcb *tcp)
   return 0;
 }
 
+/////////////////////////////////////////////////////////
+
 #ifdef AXTLS_2_0_0_SNDBUF
 
 int tcp_ssl_sndbuf(struct tcp_pcb *tcp) 
@@ -409,6 +435,8 @@ int tcp_ssl_sndbuf(struct tcp_pcb *tcp)
 
 #endif    // AXTLS_2_0_0_SNDBUF
 
+/////////////////////////////////////////////////////////
+
 int tcp_ssl_write(struct tcp_pcb *tcp, uint8_t *data, size_t len) 
 {
   if (tcp == NULL) 
@@ -421,6 +449,7 @@ int tcp_ssl_write(struct tcp_pcb *tcp, uint8_t *data, size_t len)
   if (!tcp_ssl) 
   {
     TCP_SSL_DEBUG("tcp_ssl_write: tcp_ssl is NULL\n");
+    
     return 0;
   }
   
@@ -433,6 +462,7 @@ int tcp_ssl_write(struct tcp_pcb *tcp, uint8_t *data, size_t len)
   if (expected_len < 0 || expected_len > available_len) 
   {
     TCP_SSL_DEBUG("tcp_ssl_write: data will not fit! %u < %d(%u)\r\n", available_len, expected_len, len);
+    
     return -1;
   }
 #endif    // AXTLS_2_0_0_SNDBUF
@@ -453,6 +483,8 @@ int tcp_ssl_write(struct tcp_pcb *tcp, uint8_t *data, size_t len)
 
   return tcp_ssl->last_wr;
 }
+
+/////////////////////////////////////////////////////////
 
 /**
    Reads data from the SSL over TCP stream. Returns decrypted data.
@@ -552,6 +584,8 @@ int tcp_ssl_read(struct tcp_pcb *tcp, struct pbuf *p)
   return total_bytes;
 }
 
+/////////////////////////////////////////////////////////
+
 SSL * tcp_ssl_get_ssl(struct tcp_pcb *tcp) 
 {
   tcp_ssl_t * tcp_ssl = tcp_ssl_get(tcp);
@@ -564,10 +598,14 @@ SSL * tcp_ssl_get_ssl(struct tcp_pcb *tcp)
   return NULL;
 }
 
+/////////////////////////////////////////////////////////
+
 bool tcp_ssl_has(struct tcp_pcb *tcp) 
 {
   return tcp_ssl_get(tcp) != NULL;
 }
+
+/////////////////////////////////////////////////////////
 
 int tcp_ssl_is_server(struct tcp_pcb *tcp) 
 {
@@ -581,6 +619,8 @@ int tcp_ssl_is_server(struct tcp_pcb *tcp)
   return -1;
 }
 
+/////////////////////////////////////////////////////////
+
 void tcp_ssl_arg(struct tcp_pcb *tcp, void * arg) 
 {
   tcp_ssl_t * item = tcp_ssl_get(tcp);
@@ -590,6 +630,8 @@ void tcp_ssl_arg(struct tcp_pcb *tcp, void * arg)
     item->arg = arg;
   }
 }
+
+/////////////////////////////////////////////////////////
 
 void tcp_ssl_data(struct tcp_pcb *tcp, tcp_ssl_data_cb_t arg) 
 {
@@ -601,6 +643,8 @@ void tcp_ssl_data(struct tcp_pcb *tcp, tcp_ssl_data_cb_t arg)
   }
 }
 
+/////////////////////////////////////////////////////////
+
 void tcp_ssl_handshake(struct tcp_pcb *tcp, tcp_ssl_handshake_cb_t arg) 
 {
   tcp_ssl_t * item = tcp_ssl_get(tcp);
@@ -610,6 +654,8 @@ void tcp_ssl_handshake(struct tcp_pcb *tcp, tcp_ssl_handshake_cb_t arg)
     item->on_handshake = arg;
   }
 }
+
+/////////////////////////////////////////////////////////
 
 void tcp_ssl_err(struct tcp_pcb *tcp, tcp_ssl_error_cb_t arg) 
 {
@@ -621,14 +667,20 @@ void tcp_ssl_err(struct tcp_pcb *tcp, tcp_ssl_error_cb_t arg)
   }
 }
 
+/////////////////////////////////////////////////////////
+
 static tcp_ssl_file_cb_t _tcp_ssl_file_cb = NULL;
 static void * _tcp_ssl_file_arg = NULL;
+
+/////////////////////////////////////////////////////////
 
 void tcp_ssl_file(tcp_ssl_file_cb_t cb, void * arg) 
 {
   _tcp_ssl_file_cb = cb;
   _tcp_ssl_file_arg = arg;
 }
+
+/////////////////////////////////////////////////////////
 
 int ax_get_file(const char *filename, uint8_t **buf) 
 {
@@ -643,6 +695,8 @@ int ax_get_file(const char *filename, uint8_t **buf)
   return 0;
 }
 
+/////////////////////////////////////////////////////////
+
 tcp_ssl_t* tcp_ssl_get_by_fd(int fd) 
 {
   tcp_ssl_t * item = tcp_ssl_array;
@@ -654,6 +708,9 @@ tcp_ssl_t* tcp_ssl_get_by_fd(int fd)
   
   return item;
 }
+
+/////////////////////////////////////////////////////////
+
 /*
    The LWIP tcp raw version of the SOCKET_WRITE(A, B, C)
 */
@@ -670,6 +727,7 @@ int ax_port_write(int fd, uint8_t *data, uint16_t len)
   if (fd_data == NULL) 
   {
     //TCP_SSL_DEBUG("ax_port_write: tcp_ssl[%d] is NULL\n", fd);
+    
     return ERR_MEM;
   }
 
@@ -685,9 +743,9 @@ int ax_port_write(int fd, uint8_t *data, uint16_t len)
     if (tcp_len == 0) 
     {
       TCP_SSL_DEBUG("ax_port_write: tcp_sndbuf is zero: %d\n", len);
+      
       return ERR_MEM;
-    }
-    
+    }    
   } 
   else 
   {
@@ -721,6 +779,7 @@ int ax_port_write(int fd, uint8_t *data, uint16_t len)
     if (err != ERR_OK) 
     {
       TCP_SSL_DEBUG("ax_port_write: tcp_output err: %d\n", err);
+      
       return err;
     }
   }
@@ -729,6 +788,8 @@ int ax_port_write(int fd, uint8_t *data, uint16_t len)
 
   return tcp_len;
 }
+
+/////////////////////////////////////////////////////////
 
 /*
    The LWIP tcp raw version of the SOCKET_READ(A, B, C)
@@ -747,6 +808,7 @@ int ax_port_read(int fd, uint8_t *data, int len)
   if (fd_data == NULL) 
   {
     TCP_SSL_DEBUG("ax_port_read: tcp_ssl[%d] is NULL\n", fd);
+    
     return ERR_TCP_SSL_INVALID_CLIENTFD_DATA;
   }
 
@@ -780,6 +842,10 @@ int ax_port_read(int fd, uint8_t *data, int len)
   return recv_len;
 }
 
+/////////////////////////////////////////////////////////
+
 void ax_wdt_feed() {}
+
+/////////////////////////////////////////////////////////
 
 #endif    // ASYNC_TCP_SSL_ENABLED

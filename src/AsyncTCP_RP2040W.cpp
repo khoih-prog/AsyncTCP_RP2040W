@@ -12,13 +12,15 @@
   as published bythe Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License along with this program.  
+  If not, see <https://www.gnu.org/licenses/>.
  
-  Version: 1.0.0
+  Version: 1.1.0
   
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      13/08/2022 Initial coding for RP2040W with CYW43439 WiFi
+  1.1.0   K Hoang      25/09/2022 Fix issue with slow browsers or network. Clean up. Remove hard-code if possible
  *****************************************************************************************************************************/
  
 /*************************************************************************
@@ -113,6 +115,9 @@ extern "C"
 
 #include <tcp_axtls.h>
 
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+
 /*
   Async Client Error Return Tracker
 */
@@ -129,6 +134,8 @@ ACErrorTracker::ACErrorTracker(AsyncClient *c):
 #endif
 {}
 
+/////////////////////////////////////////////////
+
 #ifdef DEBUG_MORE
 /**
    This is not necessary, but a start at gathering some statistics on
@@ -141,16 +148,20 @@ void ACErrorTracker::onErrorEvent(AsNotifyHandler cb, void *arg)
 }
 #endif
 
+/////////////////////////////////////////////////
+
 void ACErrorTracker::setCloseError(err_t e)
 {
   if (e != ERR_OK)
   {
-    ATCP_LOGERROR3("setCloseError() to:", _client->errorToString(e), "=>", e);
+    ATCP_LOGINFO3("setCloseError() to:", _client->errorToString(e), "=>", e);
   }
 
   if (_errored == EE_OK)
     _close_error = e;
 }
+
+/////////////////////////////////////////////////
 
 /**
    Called mainly by callback routines, called when err is not ERR_OK.
@@ -168,6 +179,8 @@ void ACErrorTracker::setErrored(size_t errorEvent)
 #endif
 }
 
+/////////////////////////////////////////////////
+
 /**
    Used by callback functions only. Used for proper ERR_ABRT return value
    reporting. ERR_ABRT is only reported/returned once; thereafter ERR_OK
@@ -183,6 +196,9 @@ err_t ACErrorTracker::getCallbackCloseError()
 
   return _close_error;
 }
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 
 /*
   Async TCP Client
@@ -238,7 +254,8 @@ AsyncClient::AsyncClient(tcp_pcb * pcb):
   if (_pcb)
   {
     _rx_last_packet = millis();
-    tcp_setprio(_pcb, TCP_PRIO_MIN);
+    //tcp_setprio(_pcb, TCP_PRIO_MIN);
+    tcp_setprio(_pcb, TCP_PRIO_NORMAL);
     tcp_arg(_pcb, this);
     tcp_recv(_pcb, &_s_recv);
     tcp_sent(_pcb, &_s_sent);
@@ -272,6 +289,8 @@ AsyncClient::AsyncClient(tcp_pcb * pcb):
 #endif
 }
 
+/////////////////////////////////////////////////
+
 AsyncClient::~AsyncClient()
 {
   if (_pcb)
@@ -279,6 +298,8 @@ AsyncClient::~AsyncClient()
 
   _errorTracker->clearClient();
 }
+
+/////////////////////////////////////////////////
 
 inline void clearTcpCallbacks(tcp_pcb* pcb)
 {
@@ -288,6 +309,8 @@ inline void clearTcpCallbacks(tcp_pcb* pcb)
   tcp_err(pcb, NULL);
   tcp_poll(pcb, NULL, 0);
 }
+
+/////////////////////////////////////////////////
 
 #if ASYNC_TCP_SSL_ENABLED
 bool AsyncClient::connect(IPAddress ip, uint16_t port, bool secure)
@@ -328,7 +351,8 @@ bool AsyncClient::connect(IPAddress ip, uint16_t port)
     return false;
   }
 
-  tcp_setprio(pcb, TCP_PRIO_MIN);
+  //tcp_setprio(_pcb, TCP_PRIO_MIN);
+  tcp_setprio(_pcb, TCP_PRIO_NORMAL);
 
 #if ASYNC_TCP_SSL_ENABLED
   _pcb_secure = secure;
@@ -344,43 +368,14 @@ bool AsyncClient::connect(IPAddress ip, uint16_t port)
   return (ERR_OK == err);
 }
 
+/////////////////////////////////////////////////
+
 #if ASYNC_TCP_SSL_ENABLED
 bool AsyncClient::connect(const char* host, uint16_t port, bool secure)
 #else
 bool AsyncClient::connect(const char* host, uint16_t port)
 #endif
 {
-#if 0
-  WiFiClient thisClient;
-
-  thisClient.connect(host, port);
-
-  IPAddress ipAddress = thisClient.remoteIP();
-
-  ATCP_LOGDEBUG1("thisClient.connect: IP =", ipAddress);
-
-  if ((uint32_t) ipAddress)
-  {
-    bool returnValue;
-#if ASYNC_TCP_SSL_ENABLED
-    returnValue = connect(ipAddress, port, secure);
-#else
-    returnValue = connect(ipAddress, port);
-#endif
-
-    ATCP_LOGDEBUG3("connect: IP =", ipAddress, ", returnValue = ", returnValue ? "TRUE" : "FALSE");
-
-    return returnValue;
-  }
-
-  ATCP_LOGDEBUG("connect: error No IP");
-
-  return false;
-
-#else
-
-  // dns_gethostbyname and lwip not-working for mbed_portenta v2.5.2
-
   ip_addr_t addr;
 
   err_t err = dns_gethostbyname(host, &addr, (dns_found_callback)&_s_dns_found, this);
@@ -414,8 +409,9 @@ bool AsyncClient::connect(const char* host, uint16_t port)
   ATCP_LOGDEBUG1("connect: error = ", err);
 
   return false;
-#endif
 }
+
+/////////////////////////////////////////////////
 
 AsyncClient& AsyncClient::operator=(const AsyncClient& other)
 {
@@ -433,7 +429,10 @@ AsyncClient& AsyncClient::operator=(const AsyncClient& other)
   if (_pcb)
   {
     _rx_last_packet = millis();
-    tcp_setprio(_pcb, TCP_PRIO_MIN);
+    
+    //tcp_setprio(_pcb, TCP_PRIO_MIN);
+    tcp_setprio(_pcb, TCP_PRIO_NORMAL);
+    
     tcp_arg(_pcb, this);
     tcp_recv(_pcb, &_s_recv);
     tcp_sent(_pcb, &_s_sent);
@@ -461,11 +460,15 @@ AsyncClient& AsyncClient::operator=(const AsyncClient& other)
   return *this;
 }
 
+/////////////////////////////////////////////////
+
 bool AsyncClient::operator==(const AsyncClient &other)
 {
   return (_pcb != NULL && other._pcb != NULL && (_pcb->remote_ip.addr == other._pcb->remote_ip.addr) &&
          (_pcb->remote_port == other._pcb->remote_port));
 }
+
+/////////////////////////////////////////////////
 
 void AsyncClient::abort()
 {
@@ -492,6 +495,8 @@ void AsyncClient::abort()
   return;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::close(bool now)
 {
   if (_pcb)
@@ -503,21 +508,27 @@ void AsyncClient::close(bool now)
     _close_pcb = true;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::stop()
 {
   close(false);
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::free()
 {
   if (!_pcb)
     return true;
 
-  if (_pcb->state == 0 || _pcb->state > 4)
+  if ( (_pcb->state == CLOSED) || (_pcb->state > ESTABLISHED) )
     return true;
 
   return false;
 }
+
+/////////////////////////////////////////////////
 
 size_t AsyncClient::write(const char* data)
 {
@@ -526,6 +537,8 @@ size_t AsyncClient::write(const char* data)
 
   return write(data, strlen(data));
 }
+
+/////////////////////////////////////////////////
 
 size_t AsyncClient::write(const char* data, size_t size, uint8_t apiflags)
 {
@@ -536,6 +549,8 @@ size_t AsyncClient::write(const char* data, size_t size, uint8_t apiflags)
 
   return will_send;
 }
+
+/////////////////////////////////////////////////
 
 size_t AsyncClient::add(const char* data, size_t size, uint8_t apiflags)
 {
@@ -577,6 +592,8 @@ size_t AsyncClient::add(const char* data, size_t size, uint8_t apiflags)
   return will_send;
 }
 
+/////////////////////////////////////////////////
+
 bool AsyncClient::send()
 {
 #if ASYNC_TCP_SSL_ENABLED
@@ -601,6 +618,8 @@ bool AsyncClient::send()
   return false;
 }
 
+/////////////////////////////////////////////////
+
 size_t AsyncClient::ack(size_t len)
 {
   if (len > _rx_ack_len)
@@ -613,6 +632,8 @@ size_t AsyncClient::ack(size_t len)
 
   return len;
 }
+
+/////////////////////////////////////////////////
 
 // Private Callbacks
 
@@ -627,9 +648,9 @@ void AsyncClient::_connected(std::shared_ptr<ACErrorTracker>& errorTracker, void
 
   if (NULL == pcb || ERR_OK != err)
   {
-    ATCP_LOGDEBUG3("_connected: ID =", errorTracker->getConnectionId(), ", pcb =", ((NULL == pcb) ? " NULL == pcb!," : "") );
+    ATCP_LOGDEBUG3("_connected: ID =", errorTracker->getConnectionId(), ", _pcb =", ((NULL == _pcb) ? "NULL" : "OK") );
     ATCP_LOGDEBUG3("errorToString =", errorToString(err), ", err =", err );
-
+    
     errorTracker->setCloseError(err);
     errorTracker->setErrored(EE_CONNECTED_CB);
     _pcb = reinterpret_cast<tcp_pcb*>(pcb);
@@ -649,7 +670,10 @@ void AsyncClient::_connected(std::shared_ptr<ACErrorTracker>& errorTracker, void
   {
     _pcb_busy = false;
     _rx_last_packet = millis();
-    tcp_setprio(_pcb, TCP_PRIO_MIN);
+    
+    //tcp_setprio(_pcb, TCP_PRIO_MIN);
+    tcp_setprio(_pcb, TCP_PRIO_NORMAL);
+    
     tcp_recv(_pcb, &_s_recv);
     tcp_sent(_pcb, &_s_sent);
     tcp_poll(_pcb, &_s_poll, 1);
@@ -683,6 +707,8 @@ void AsyncClient::_connected(std::shared_ptr<ACErrorTracker>& errorTracker, void
   return;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_close()
 {
   if (_pcb)
@@ -704,7 +730,7 @@ void AsyncClient::_close()
     else
     {
       ATCP_LOGDEBUG3("_close : ID =", getConnectionId(), ", abort() called for AsyncClient 0x", uintptr_t(this));
-
+           
       abort();
     }
 
@@ -717,11 +743,12 @@ void AsyncClient::_close()
   return;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_error(err_t err)
 {
-  ATCP_LOGDEBUG3("_error: ID =", getConnectionId(), ", _pcb =", ((NULL == _pcb) ? " NULL == _pcb!," : "") );
+  ATCP_LOGDEBUG3("_error: ID =", getConnectionId(), ", _pcb =", ((NULL == _pcb) ? "NULL" : "OK") );
   ATCP_LOGDEBUG3("errorToString =", errorToString(err), ", err =", err );
-
 
   if (_pcb)
   {
@@ -734,6 +761,11 @@ void AsyncClient::_error(err_t err)
 
     // At this callback _pcb is possible already freed. Thus, no calls are
     // made to set to NULL other callbacks.
+    // KH add, from v1.1.0, to free _pcb
+    clearTcpCallbacks(_pcb);
+    tcp_close(_pcb);
+    //////
+    
     _pcb = NULL;
   }
 
@@ -744,6 +776,8 @@ void AsyncClient::_error(err_t err)
     _discard_cb(_discard_cb_arg, this);
 }
 
+/////////////////////////////////////////////////
+
 #if ASYNC_TCP_SSL_ENABLED
 void AsyncClient::_ssl_error(int8_t err)
 {
@@ -751,6 +785,8 @@ void AsyncClient::_ssl_error(int8_t err)
     _error_cb(_error_cb_arg, this, err + 64);
 }
 #endif
+
+/////////////////////////////////////////////////
 
 void AsyncClient::_sent(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* pcb, uint16_t len)
 {
@@ -761,9 +797,9 @@ void AsyncClient::_sent(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* 
     return;
 #endif
 
-  _rx_last_packet = millis();
+  _rx_last_packet  = millis();
   _tx_unacked_len -= len;
-  _tx_acked_len += len;
+  _tx_acked_len   += len;
 
   ATCP_LOGDEBUG3("_sent: ID =", errorTracker->getConnectionId(), ", len =", len);
   ATCP_LOGDEBUG3("unacked =", _tx_unacked_len, ", acked =", _tx_acked_len);
@@ -787,6 +823,8 @@ void AsyncClient::_sent(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* 
   return;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_recv(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* pcb, pbuf* pb, err_t err)
 {
   // While lwIP v1.4 appears to always call with ERR_OK, 2.x lwIP may present
@@ -795,9 +833,9 @@ void AsyncClient::_recv(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* 
 
   if (NULL == pcb || ERR_OK != err)
   {
-    ATCP_LOGDEBUG3("_recv: ID =", errorTracker->getConnectionId(), ", pcb =", ((NULL == pcb) ? " NULL == pcb!," : "") );
+    ATCP_LOGDEBUG3("_recv: ID =", errorTracker->getConnectionId(), ", _pcb =", ((NULL == _pcb) ? "NULL" : "OK") );
     ATCP_LOGDEBUG3("errorToString =", errorToString(err), ", err =", err );
-
+    
     errorTracker->setCloseError(err);
     errorTracker->setErrored(EE_RECV_CB);
     _pcb = pcb;
@@ -918,6 +956,8 @@ void AsyncClient::_recv(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* 
   return;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_poll(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* pcb)
 {
   ASYNCTCP_RP2040W_UNUSED(pcb);
@@ -970,6 +1010,8 @@ void AsyncClient::_poll(std::shared_ptr<ACErrorTracker>& errorTracker, tcp_pcb* 
   return;
 }
 
+/////////////////////////////////////////////////
+
 #if LWIP_VERSION_MAJOR == 1
 void AsyncClient::_dns_found(struct ip_addr *ipaddr)
 #else
@@ -994,6 +1036,8 @@ void AsyncClient::_dns_found(ip_addr_t *p)
   }
 }
 
+/////////////////////////////////////////////////
+
 // lwIP Callbacks
 #if LWIP_VERSION_MAJOR == 1
 void AsyncClient::_s_dns_found(const char *name, const ip_addr *ipaddr, void *arg)
@@ -1005,50 +1049,67 @@ void AsyncClient::_s_dns_found(const char *name, ip_addr_t *p, void *arg)
   reinterpret_cast<AsyncClient*>(arg)->_dns_found(p);
 }
 
+/////////////////////////////////////////////////
+
 err_t AsyncClient::_s_poll(void *arg, struct tcp_pcb *tpcb)
 {
-  AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);
+  AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);  
   std::shared_ptr<ACErrorTracker>errorTracker = c->getACErrorTracker();
+  
   c->_poll(errorTracker, tpcb);
 
   return errorTracker->getCallbackCloseError();
 }
 
+/////////////////////////////////////////////////
+
 err_t AsyncClient::_s_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *pb, err_t err)
 {
   AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);
   auto errorTracker = c->getACErrorTracker();
+  
   c->_recv(errorTracker, tpcb, pb, err);
 
   return errorTracker->getCallbackCloseError();
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_s_error(void *arg, err_t err)
 {
   AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);
   auto errorTracker = c->getACErrorTracker();
+  
   errorTracker->setCloseError(err);
   errorTracker->setErrored(EE_ERROR_CB);
   c->_error(err);
 }
 
+/////////////////////////////////////////////////
+
 err_t AsyncClient::_s_sent(void *arg, struct tcp_pcb *tpcb, uint16_t len)
 {
   AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);
   auto errorTracker = c->getACErrorTracker();
+  
   c->_sent(errorTracker, tpcb, len);
 
   return errorTracker->getCallbackCloseError();
 }
 
+/////////////////////////////////////////////////
+
 err_t AsyncClient::_s_connected(void* arg, void* tpcb, err_t err)
 {
   AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);
   auto errorTracker = c->getACErrorTracker();
+  
   c->_connected(errorTracker, tpcb, err);
 
   return errorTracker->getCallbackCloseError();
 }
+
+/////////////////////////////////////////////////
 
 #if ASYNC_TCP_SSL_ENABLED
 void AsyncClient::_s_data(void *arg, struct tcp_pcb *tcp, uint8_t * data, size_t len)
@@ -1059,6 +1120,8 @@ void AsyncClient::_s_data(void *arg, struct tcp_pcb *tcp, uint8_t * data, size_t
     c->_recv_cb(c->_recv_cb_arg, c, data, len);
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_s_handshake(void *arg, struct tcp_pcb *tcp, SSL *ssl)
 {
   AsyncClient *c = reinterpret_cast<AsyncClient*>(arg);
@@ -1068,11 +1131,15 @@ void AsyncClient::_s_handshake(void *arg, struct tcp_pcb *tcp, SSL *ssl)
     c->_connect_cb(c->_connect_cb_arg, c);
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::_s_ssl_error(void *arg, struct tcp_pcb *tcp, int8_t err)
 {
   reinterpret_cast<AsyncClient*>(arg)->_ssl_error(err);
 }
 #endif
+
+/////////////////////////////////////////////////
 
 // Operators
 
@@ -1086,7 +1153,10 @@ AsyncClient & AsyncClient::operator+=(const AsyncClient &other)
   else
   {
     AsyncClient *c = next;
-    while (c->next != NULL) c = c->next;
+    
+    while (c->next != NULL) 
+      c = c->next;
+      
     c->next = (AsyncClient*)(&other);
     c->next->prev = c;
   }
@@ -1094,25 +1164,35 @@ AsyncClient & AsyncClient::operator+=(const AsyncClient &other)
   return *this;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::setRxTimeout(uint32_t timeout)
 {
   _rx_since_timeout = timeout;
 }
+
+/////////////////////////////////////////////////
 
 uint32_t AsyncClient::getRxTimeout()
 {
   return _rx_since_timeout;
 }
 
+/////////////////////////////////////////////////
+
 uint32_t AsyncClient::getAckTimeout()
 {
   return _ack_timeout;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::setAckTimeout(uint32_t timeout)
 {
   _ack_timeout = timeout;
 }
+
+/////////////////////////////////////////////////
 
 void AsyncClient::setNoDelay(bool nodelay)
 {
@@ -1125,6 +1205,8 @@ void AsyncClient::setNoDelay(bool nodelay)
     tcp_nagle_enable(_pcb);
 }
 
+/////////////////////////////////////////////////
+
 bool AsyncClient::getNoDelay()
 {
   if (!_pcb)
@@ -1133,12 +1215,17 @@ bool AsyncClient::getNoDelay()
   return tcp_nagle_disabled(_pcb);
 }
 
+/////////////////////////////////////////////////
+
 uint16_t AsyncClient::getMss()
 {
   if (_pcb)
     return tcp_mss(_pcb);
+    
   return 0;
 }
+
+/////////////////////////////////////////////////
 
 uint32_t AsyncClient::getRemoteAddress()
 {
@@ -1148,6 +1235,8 @@ uint32_t AsyncClient::getRemoteAddress()
   return _pcb->remote_ip.addr;
 }
 
+/////////////////////////////////////////////////
+
 uint16_t AsyncClient::getRemotePort()
 {
   if (!_pcb)
@@ -1155,6 +1244,8 @@ uint16_t AsyncClient::getRemotePort()
 
   return _pcb->remote_port;
 }
+
+/////////////////////////////////////////////////
 
 uint32_t AsyncClient::getLocalAddress()
 {
@@ -1164,6 +1255,8 @@ uint32_t AsyncClient::getLocalAddress()
   return _pcb->local_ip.addr;
 }
 
+/////////////////////////////////////////////////
+
 uint16_t AsyncClient::getLocalPort()
 {
   if (!_pcb)
@@ -1172,25 +1265,35 @@ uint16_t AsyncClient::getLocalPort()
   return _pcb->local_port;
 }
 
+/////////////////////////////////////////////////
+
 IPAddress AsyncClient::remoteIP()
 {
   return IPAddress(getRemoteAddress());
 }
+
+/////////////////////////////////////////////////
 
 uint16_t AsyncClient::remotePort()
 {
   return getRemotePort();
 }
 
+/////////////////////////////////////////////////
+
 IPAddress AsyncClient::localIP()
 {
   return IPAddress(getLocalAddress());
 }
 
+/////////////////////////////////////////////////
+
 uint16_t AsyncClient::localPort()
 {
   return getLocalPort();
 }
+
+/////////////////////////////////////////////////
 
 #if ASYNC_TCP_SSL_ENABLED
 SSL * AsyncClient::getSSL()
@@ -1204,6 +1307,8 @@ SSL * AsyncClient::getSSL()
 }
 #endif
 
+/////////////////////////////////////////////////
+
 uint8_t AsyncClient::state()
 {
   if (!_pcb)
@@ -1211,6 +1316,8 @@ uint8_t AsyncClient::state()
 
   return _pcb->state;
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::connected()
 {
@@ -1222,11 +1329,13 @@ bool AsyncClient::connected()
   }
 
 #if ASYNC_TCP_SSL_ENABLED
-  return _pcb->state == 4 && _handshake_done;
+  return ( (_pcb->state == ESTABLISHED) && _handshake_done );
 #else
-  return _pcb->state == 4;
+  return (_pcb->state == ESTABLISHED);
 #endif
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::connecting()
 {
@@ -1237,8 +1346,10 @@ bool AsyncClient::connecting()
     return false;
   }
 
-  return _pcb->state > 0 && _pcb->state < 4;
+  return ( (_pcb->state > CLOSED) && (_pcb->state < ESTABLISHED) );
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::disconnecting()
 {
@@ -1249,8 +1360,10 @@ bool AsyncClient::disconnecting()
     return false;
   }
 
-  return _pcb->state > 4 && _pcb->state < 10;
+  return ( (_pcb->state > ESTABLISHED) && (_pcb->state < TIME_WAIT) );
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::disconnected()
 {
@@ -1261,8 +1374,10 @@ bool AsyncClient::disconnected()
     return false;
   }
 
-  return _pcb->state == 0 || _pcb->state == 10;
+  return ( (_pcb->state == CLOSED) || (_pcb->state == TIME_WAIT) );
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::freeable()
 {
@@ -1273,8 +1388,10 @@ bool AsyncClient::freeable()
     return false;
   }
 
-  return _pcb->state == 0 || _pcb->state > 4;
+  return ( (_pcb->state == CLOSED) || (_pcb->state > ESTABLISHED) );
 }
+
+/////////////////////////////////////////////////
 
 bool AsyncClient::canSend()
 {
@@ -1291,6 +1408,7 @@ bool AsyncClient::canSend()
   return !_pcb_busy && (space() > 0);
 }
 
+/////////////////////////////////////////////////
 
 // Callback Setters
 
@@ -1300,11 +1418,15 @@ void AsyncClient::onConnect(AcConnectHandler cb, void* arg)
   _connect_cb_arg = arg;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::onDisconnect(AcConnectHandler cb, void* arg)
 {
   _discard_cb = cb;
   _discard_cb_arg = arg;
 }
+
+/////////////////////////////////////////////////
 
 void AsyncClient::onAck(AcAckHandler cb, void* arg)
 {
@@ -1312,11 +1434,15 @@ void AsyncClient::onAck(AcAckHandler cb, void* arg)
   _sent_cb_arg = arg;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::onError(AcErrorHandler cb, void* arg)
 {
   _error_cb = cb;
   _error_cb_arg = arg;
 }
+
+/////////////////////////////////////////////////
 
 void AsyncClient::onData(AcDataHandler cb, void* arg)
 {
@@ -1324,11 +1450,15 @@ void AsyncClient::onData(AcDataHandler cb, void* arg)
   _recv_cb_arg = arg;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::onPacket(AcPacketHandler cb, void* arg)
 {
   _pb_cb = cb;
   _pb_cb_arg = arg;
 }
+
+/////////////////////////////////////////////////
 
 void AsyncClient::onTimeout(AcTimeoutHandler cb, void* arg)
 {
@@ -1336,17 +1466,20 @@ void AsyncClient::onTimeout(AcTimeoutHandler cb, void* arg)
   _timeout_cb_arg = arg;
 }
 
+/////////////////////////////////////////////////
+
 void AsyncClient::onPoll(AcConnectHandler cb, void* arg)
 {
   _poll_cb = cb;
   _poll_cb_arg = arg;
 }
 
+/////////////////////////////////////////////////
 
 size_t AsyncClient::space()
 {
 #if ASYNC_TCP_SSL_ENABLED
-  if ((_pcb != NULL) && (_pcb->state == 4) && _handshake_done)
+  if ( (_pcb != NULL) && (_pcb->state == ESTABLISHED) && _handshake_done )
   {
     uint16_t s = tcp_sndbuf(_pcb);
 
@@ -1365,7 +1498,7 @@ size_t AsyncClient::space()
     return s;
   }
 #else // ASYNC_TCP_SSL_ENABLED
-  if ((_pcb != NULL) && (_pcb->state == 4))
+  if ((_pcb != NULL) && (_pcb->state == ESTABLISHED))
   {
     return tcp_sndbuf(_pcb);
   }
@@ -1373,6 +1506,8 @@ size_t AsyncClient::space()
 
   return 0;
 }
+
+/////////////////////////////////////////////////
 
 void AsyncClient::ackPacket(struct pbuf * pb)
 {
@@ -1385,54 +1520,104 @@ void AsyncClient::ackPacket(struct pbuf * pb)
   pbuf_free(pb);
 }
 
+/////////////////////////////////////////////////
+
 const char * AsyncClient::errorToString(err_t error)
 {
   switch (error)
   {
-    case ERR_OK:         return "No error, everything OK";
-    case ERR_MEM:        return "Out of memory error";
-    case ERR_BUF:        return "Buffer error";
-    case ERR_TIMEOUT:    return "Timeout";
-    case ERR_RTE:        return "Routing problem";
-    case ERR_INPROGRESS: return "Operation in progress";
-    case ERR_VAL:        return "Illegal value";
-    case ERR_WOULDBLOCK: return "Operation would block";
-    case ERR_ABRT:       return "Connection aborted";
-    case ERR_RST:        return "Connection reset";
-    case ERR_CLSD:       return "Connection closed";
-    case ERR_CONN:       return "Not connected";
-    case ERR_ARG:        return "Illegal argument";
-    case ERR_USE:        return "Address in use";
-
-#if defined(LWIP_VERSION_MAJOR) && (LWIP_VERSION_MAJOR > 1)
-    case ERR_ALREADY:    return "Already connectioning";
-#endif
-
-    case ERR_IF:         return "Low-level netif error";
-    case ERR_ISCONN:     return "Connection already established";
-    case -55:            return "DNS failed";
-    default:             return "Unknown error";
+    case ERR_OK: 
+      return "OK";
+    case ERR_MEM: 
+      return "Out of memory error";
+    case ERR_BUF: 
+      return "Buffer error";
+    case ERR_TIMEOUT: 
+      return "Timeout";
+    case ERR_RTE: 
+      return "Routing problem";
+    case ERR_INPROGRESS: 
+      return "Operation in progress";
+    case ERR_VAL: 
+      return "Illegal value";
+    case ERR_WOULDBLOCK: 
+      return "Operation would block";
+    case ERR_USE: 
+      return "Address in use";
+    case ERR_ALREADY: 
+      return "Already connected";
+    case ERR_CONN: 
+      return "Not connected";
+    case ERR_IF: 
+      return "Low-level netif error";
+    case ERR_ABRT: 
+      return "Connection aborted";
+    case ERR_RST: 
+      return "Connection reset";
+    case ERR_CLSD:
+      return "Connection closed";
+    case ERR_ARG: 
+      return "Illegal argument";
+    case -55: 
+      return "DNS failed";
+    default: 
+      return "UNKNOWN";
   }
 }
+
+/////////////////////////////////////////////////
+
+/*****************************************************
+// Defined in ./pico-sdk/lib/lwip/src/include/lwip/tcpbase.h
+enum tcp_state 
+{
+  CLOSED      = 0,
+  LISTEN      = 1,
+  SYN_SENT    = 2,
+  SYN_RCVD    = 3,
+  ESTABLISHED = 4,
+  FIN_WAIT_1  = 5,
+  FIN_WAIT_2  = 6,
+  CLOSE_WAIT  = 7,
+  CLOSING     = 8,
+  LAST_ACK    = 9,
+  TIME_WAIT   = 10
+};
+*****************************************************/
 
 const char * AsyncClient::stateToString()
 {
   switch (state())
   {
-    case 0: return "Closed";
-    case 1: return "Listen";
-    case 2: return "SYN Sent";
-    case 3: return "SYN Received";
-    case 4: return "Established";
-    case 5: return "FIN Wait 1";
-    case 6: return "FIN Wait 2";
-    case 7: return "Close Wait";
-    case 8: return "Closing";
-    case 9: return "Last ACK";
-    case 10: return "Time Wait";
-    default: return "UNKNOWN";
+    case CLOSED: 
+      return "Closed";
+    case LISTEN: 
+      return "Listen";
+    case SYN_SENT: 
+      return "SYN Sent";
+    case SYN_RCVD: 
+      return "SYN Received";
+    case ESTABLISHED: 
+      return "Established";
+    case FIN_WAIT_1: 
+      return "FIN Wait 1";
+    case FIN_WAIT_2: 
+      return "FIN Wait 2";
+    case CLOSE_WAIT: 
+      return "Close Wait";
+    case CLOSING: 
+      return "Closing";
+    case LAST_ACK: 
+      return "Last ACK";
+    case TIME_WAIT: 
+      return "Time Wait";
+    default: 
+      return "UNKNOWN";
   }
 }
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 
 /*
   Async TCP Server
@@ -1443,6 +1628,8 @@ struct pending_pcb
   pbuf *pb;
   struct pending_pcb * next;
 };
+
+/////////////////////////////////////////////////
 
 AsyncServer::AsyncServer(IPAddress addr, uint16_t port)
   : _port(port)
@@ -1464,6 +1651,8 @@ AsyncServer::AsyncServer(IPAddress addr, uint16_t port)
 #endif
 }
 
+/////////////////////////////////////////////////
+
 AsyncServer::AsyncServer(uint16_t port)
   : _port(port)
   , _addr((uint32_t) IPADDR_ANY)
@@ -1484,16 +1673,22 @@ AsyncServer::AsyncServer(uint16_t port)
 #endif
 }
 
+/////////////////////////////////////////////////
+
 AsyncServer::~AsyncServer()
 {
   end();
 }
+
+/////////////////////////////////////////////////
 
 void AsyncServer::onClient(AcConnectHandler cb, void* arg)
 {
   _connect_cb = cb;
   _connect_cb_arg = arg;
 }
+
+/////////////////////////////////////////////////
 
 #if ASYNC_TCP_SSL_ENABLED
 void AsyncServer::onSslFileRequest(AcSSlFileHandler cb, void* arg)
@@ -1502,6 +1697,8 @@ void AsyncServer::onSslFileRequest(AcSSlFileHandler cb, void* arg)
   _file_cb_arg = arg;
 }
 #endif
+
+/////////////////////////////////////////////////
 
 void AsyncServer::begin()
 {
@@ -1516,7 +1713,9 @@ void AsyncServer::begin()
     return;
   }
 
-  tcp_setprio(pcb, TCP_PRIO_MIN);
+  //tcp_setprio(_pcb, TCP_PRIO_MIN);
+  tcp_setprio(_pcb, TCP_PRIO_NORMAL);
+  
   ip_addr_t local_addr;
   local_addr.addr = (uint32_t) _addr;
   err = tcp_bind(pcb, &local_addr, _port);
@@ -1525,6 +1724,7 @@ void AsyncServer::begin()
   if (err != ERR_OK)
   {
     tcp_close(pcb);
+    
     return;
   }
 
@@ -1533,6 +1733,7 @@ void AsyncServer::begin()
   if (!listen_pcb)
   {
     tcp_close(pcb);
+    
     return;
   }
 
@@ -1540,6 +1741,8 @@ void AsyncServer::begin()
   tcp_arg(_pcb, (void*) this);
   tcp_accept(_pcb, &_s_accept);
 }
+
+/////////////////////////////////////////////////
 
 #if ASYNC_TCP_SSL_ENABLED
 void AsyncServer::beginSecure(const char *cert, const char *key, const char *password)
@@ -1558,6 +1761,8 @@ void AsyncServer::beginSecure(const char *cert, const char *key, const char *pas
   }
 }
 #endif
+
+/////////////////////////////////////////////////
 
 void AsyncServer::end()
 {
@@ -1602,15 +1807,21 @@ void AsyncServer::end()
 #endif
 }
 
+/////////////////////////////////////////////////
+
 void AsyncServer::setNoDelay(bool nodelay)
 {
   _noDelay = nodelay;
 }
 
+/////////////////////////////////////////////////
+
 bool AsyncServer::getNoDelay()
 {
   return _noDelay;
 }
+
+/////////////////////////////////////////////////
 
 uint8_t AsyncServer::status()
 {
@@ -1619,6 +1830,8 @@ uint8_t AsyncServer::status()
 
   return _pcb->state;
 }
+
+/////////////////////////////////////////////////
 
 err_t AsyncServer::_accept(tcp_pcb* pcb, err_t err)
 {
@@ -1662,6 +1875,7 @@ err_t AsyncServer::_accept(tcp_pcb* pcb, err_t err)
           if (tcp_close(pcb) != ERR_OK)
           {
             tcp_abort(pcb);
+            
             return ERR_ABRT;
           }
 
@@ -1673,7 +1887,10 @@ err_t AsyncServer::_accept(tcp_pcb* pcb, err_t err)
         new_item->pcb = pcb;
         new_item->pb = NULL;
         new_item->next = NULL;
-        tcp_setprio(_pcb, TCP_PRIO_MIN);
+        
+        //tcp_setprio(_pcb, TCP_PRIO_MIN);
+        tcp_setprio(_pcb, TCP_PRIO_NORMAL);
+        
         tcp_arg(pcb, this);
         tcp_poll(pcb, &_s_poll, 1);
         tcp_recv(pcb, &_s_recv);
@@ -1712,6 +1929,7 @@ err_t AsyncServer::_accept(tcp_pcb* pcb, err_t err)
           if (tcp_close(pcb) != ERR_OK)
           {
             tcp_abort(pcb);
+            
             return ERR_ABRT;
           }
         }
@@ -1750,6 +1968,7 @@ err_t AsyncServer::_accept(tcp_pcb* pcb, err_t err)
         if (tcp_close(pcb) != ERR_OK)
         {
           tcp_abort(pcb);
+          
           return ERR_ABRT;
         }
       }
@@ -1761,18 +1980,24 @@ err_t AsyncServer::_accept(tcp_pcb* pcb, err_t err)
   if (tcp_close(pcb) != ERR_OK)
   {
     tcp_abort(pcb);
+    
     return ERR_ABRT;
   }
 
   return ERR_OK;
 }
 
+/////////////////////////////////////////////////
+
 err_t AsyncServer::_s_accept(void *arg, tcp_pcb* pcb, err_t err)
 {
   return reinterpret_cast<AsyncServer*>(arg)->_accept(pcb, err);
 }
 
+/////////////////////////////////////////////////
+
 #if ASYNC_TCP_SSL_ENABLED
+
 err_t AsyncServer::_poll(tcp_pcb* pcb)
 {
   if (!tcp_ssl_has_client() && _pending)
@@ -1816,6 +2041,8 @@ err_t AsyncServer::_poll(tcp_pcb* pcb)
   }
   return ERR_OK;
 }
+
+/////////////////////////////////////////////////
 
 err_t AsyncServer::_recv(struct tcp_pcb *pcb, struct pbuf *pb, err_t err)
 {
@@ -1888,6 +2115,8 @@ err_t AsyncServer::_recv(struct tcp_pcb *pcb, struct pbuf *pb, err_t err)
   return ERR_OK;
 }
 
+/////////////////////////////////////////////////
+
 int AsyncServer::_cert(const char *filename, uint8_t **buf)
 {
   if (_file_cb)
@@ -1900,20 +2129,29 @@ int AsyncServer::_cert(const char *filename, uint8_t **buf)
   return 0;
 }
 
+/////////////////////////////////////////////////
+
 int AsyncServer::_s_cert(void *arg, const char *filename, uint8_t **buf)
 {
   return reinterpret_cast<AsyncServer*>(arg)->_cert(filename, buf);
 }
+
+/////////////////////////////////////////////////
 
 err_t AsyncServer::_s_poll(void *arg, struct tcp_pcb *pcb)
 {
   return reinterpret_cast<AsyncServer*>(arg)->_poll(pcb);
 }
 
+/////////////////////////////////////////////////
+
 err_t AsyncServer::_s_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *pb, err_t err)
 {
   return reinterpret_cast<AsyncServer*>(arg)->_recv(pcb, pb, err);
 }
-#endif
+
+#endif		// #if ASYNC_TCP_SSL_ENABLED
+
+/////////////////////////////////////////////////
 
 
