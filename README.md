@@ -25,7 +25,7 @@
   * [Use Arduino Library Manager](#use-arduino-library-manager)
   * [Manual Install](#manual-install)
   * [VS Code & PlatformIO](#vs-code--platformio)
-* [Orignal documentation](#Orignal-documentation)
+* [Original documentation](#Original-documentation)
   * [AsyncClient and AsyncServer](#AsyncClient-and-AsyncServer)
   * [AsyncPrinter](#AsyncPrinter)
   * [AsyncTCPbuffer](#AsyncTCPbuffer)
@@ -112,7 +112,7 @@ Another way to install is to:
 ---
 ---
 
-## Orignal documentation
+## Original documentation
 
 Check [AsyncTCP Library](https://github.com/me-no-dev/AsyncTCP)
 
