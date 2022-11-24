@@ -1,22 +1,22 @@
 /****************************************************************************************************************************
   SyncClient.h
-  
+
   For RP2040W with CYW43439 WiFi
-     
+
   AsyncTCP_RP2040W is a library for the RP2040W with CYW43439 WiFi
-  
+
   Based on and modified from AsyncTCP (https://github.com/me-no-dev/ESPAsyncTCP)
   Built by Khoi Hoang https://github.com/khoih-prog/AsyncTCP_RP2040W
-  
-  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+
+  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
   as published bythe Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License along with this program.  
+  You should have received a copy of the GNU General Public License along with this program.
   If not, see <https://www.gnu.org/licenses/>.
- 
+
   Version: 1.1.0
-  
+
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      13/08/2022 Initial coding for RP2040W with CYW43439 WiFi
@@ -63,7 +63,7 @@ class AsyncClient;
 
 /////////////////////////////////////////////////////////
 
-class SyncClient: public Client 
+class SyncClient: public Client
 {
   private:
     AsyncClient *_client;
@@ -88,56 +88,56 @@ class SyncClient: public Client
 
     int ref();
     int unref();
-    
-    operator bool() 
+
+    operator bool()
     {
       return connected();
     }
-    
+
     SyncClient & operator=(const SyncClient &other);
 
 #if ASYNC_TCP_SSL_ENABLED
     int _connect(const IPAddress& ip, uint16_t port, bool secure);
-    
-    int connect(CONST IPAddress& ip, uint16_t port, bool secure) 
+
+    int connect(CONST IPAddress& ip, uint16_t port, bool secure)
     {
       return _connect(ip, port, secure);
     }
-    
-    int connect(IPAddress ip, uint16_t port, bool secure) 
+
+    int connect(IPAddress ip, uint16_t port, bool secure)
     {
       return _connect(reinterpret_cast<const IPAddress&>(ip), port, secure);
     }
-    
+
     int connect(const char *host, uint16_t port, bool secure);
-    
-    int connect(CONST IPAddress& ip, uint16_t port) 
+
+    int connect(CONST IPAddress& ip, uint16_t port)
     {
       return _connect(ip, port, false);
     }
-    
-    int connect(IPAddress ip, uint16_t port) 
+
+    int connect(IPAddress ip, uint16_t port)
     {
       return _connect(reinterpret_cast<const IPAddress&>(ip), port, false);
     }
-    
-    int connect(const char *host, uint16_t port) 
+
+    int connect(const char *host, uint16_t port)
     {
       return connect(host, port, false);
     }
 #else
     int _connect(const IPAddress& ip, uint16_t port);
-    
-    int connect(CONST IPAddress& ip, uint16_t port) 
+
+    int connect(CONST IPAddress& ip, uint16_t port)
     {
       return _connect(ip, port);
     }
-    
-    int connect(IPAddress ip, uint16_t port) 
+
+    int connect(IPAddress ip, uint16_t port)
     {
       return _connect(reinterpret_cast<const IPAddress&>(ip), port);
     }
-    
+
     int connect(const char *host, uint16_t port);
 #endif
     void setTimeout(uint32_t seconds);
@@ -147,17 +147,17 @@ class SyncClient: public Client
 
     bool stop(unsigned int maxWaitMs);
     bool flush(unsigned int maxWaitMs);
-    
-    void stop() 
+
+    void stop()
     {
       (void)stop(0);
     }
-    
-    void flush() 
+
+    void flush()
     {
       (void)flush(0);
     }
-    
+
     size_t write(uint8_t data);
     size_t write(const uint8_t *data, size_t len);
 

@@ -1,4 +1,4 @@
-# AsyncTCP_RP2040W 
+# AsyncTCP_RP2040W Library
 
 [![arduino-library-badge](https://www.ardu-badge.com/badge/AsyncTCP_RP2040W.svg?)](https://www.ardu-badge.com/AsyncTCP_RP2040W)
 [![GitHub release](https://img.shields.io/github/release/khoih-prog/AsyncTCP_RP2040W.svg)](https://github.com/khoih-prog/AsyncTCP_RP2040W/releases)
@@ -8,6 +8,8 @@
 
 <a href="https://www.buymeacoffee.com/khoihprog6" title="Donate to my libraries using BuyMeACoffee"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Donate to my libraries using BuyMeACoffee" style="height: 50px !important;width: 181px !important;" ></a>
 <a href="https://www.buymeacoffee.com/khoihprog6" title="Donate to my libraries using BuyMeACoffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange.svg?logo=buy-me-a-coffee&logoColor=FFDD00" style="height: 20px !important;width: 200px !important;" ></a>
+<a href="https://profile-counter.glitch.me/khoih-prog/count.svg" title="Total khoih-prog Visitor count"><img src="https://profile-counter.glitch.me/khoih-prog/count.svg" style="height: 30px;width: 200px;"></a>
+<a href="https://profile-counter.glitch.me/khoih-prog-AsyncTCP_RP2040W/count.svg" title="AsyncTCP_RP2040W Visitor count"><img src="https://profile-counter.glitch.me/khoih-prog-AsyncTCP_RP2040W/count.svg" style="height: 30px;width: 200px;"></a>
 
 ---
 ---
@@ -72,7 +74,7 @@ to apply the better and faster **asynchronous** feature of the **powerful** [ESP
 
 ### Currently supported Boards
 
-1. **RASPBERRY_PI_PICO_W with CYW43439 WiFi** using [**arduino-pico core v2.4.0+**](https://github.com/earlephilhower/arduino-pico)
+1. **RASPBERRY_PI_PICO_W with CYW43439 WiFi** using [**arduino-pico core**](https://github.com/earlephilhower/arduino-pico)
 
 
 ---
@@ -81,7 +83,7 @@ to apply the better and faster **asynchronous** feature of the **powerful** [ESP
 ## Prerequisites
 
  1. [`Arduino IDE 1.8.19+` for Arduino](https://github.com/arduino/Arduino). [![GitHub release](https://img.shields.io/github/release/arduino/Arduino.svg)](https://github.com/arduino/Arduino/releases/latest)
- 2. [`Earle Philhower's arduino-pico core v2.5.4+`](https://github.com/earlephilhower/arduino-pico) for **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, etc. [![GitHub release](https://img.shields.io/github/release/earlephilhower/arduino-pico.svg)](https://github.com/earlephilhower/arduino-pico/releases/latest)
+ 2. [`Earle Philhower's arduino-pico core v2.6.3+`](https://github.com/earlephilhower/arduino-pico) for **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, etc. [![GitHub release](https://img.shields.io/github/release/earlephilhower/arduino-pico.svg)](https://github.com/earlephilhower/arduino-pico/releases/latest)
 
 ---
 ---
@@ -183,6 +185,8 @@ Submit issues to: [AsyncTCP_RP2040W issues](https://github.com/khoih-prog/AsyncT
 ## DONE
 
 1. **RASPBERRY_PI_PICO_W with CYW43439 WiFi**
+2. Add astyle using `allman` style. Restyle the library
+
 
 ---
 ---
@@ -225,7 +229,7 @@ If you want to contribute to this project:
 
 ## Copyright
 
-- Copyright 2016- Hristo Gochkov
-- Copyright 2022- Khoi Hoang
+- Copyright (c) 2016- Hristo Gochkov
+- Copyright (c) 2022- Khoi Hoang
 
 
