@@ -30,6 +30,14 @@
   * [AsyncPrinter](#AsyncPrinter)
   * [AsyncTCPbuffer](#AsyncTCPbuffer)
   * [SyncClient](#SyncClient)
+* [Examples](#examples)
+  * [1. AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client)
+  * [2. AsyncTCP_Server](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Server)
+* [Example AsyncTCP_Client](#Example-AsyncTCP_Client)
+  * [1. File AsyncTCP_Client.ino](#1-File-AsyncTCP_Client)
+* [Debug Terminal Output Samples](#debug-terminal-output-samples)
+  * [1. AsyncTCP_Server on RASPBERRY_PI_PICO_W with CYW43439 WiFi](#1-AsyncTCP_Server-on-RASPBERRY_PI_PICO_W-with-CYW43439-WiFi)
+  * [2. AsyncTCP_Client on RASPBERRY_PI_PICO_W with CYW43439 WiFi](#2-AsyncTCP_Client-on-RASPBERRY_PI_PICO_W-with-CYW43439-WiFi)
 * [Debug](#debug)
 * [Troubleshooting](#troubleshooting)
 * [Issues](#issues)
@@ -81,7 +89,7 @@ to apply the better and faster **asynchronous** feature of the **powerful** [ESP
 ## Prerequisites
 
  1. [`Arduino IDE 1.8.19+` for Arduino](https://github.com/arduino/Arduino). [![GitHub release](https://img.shields.io/github/release/arduino/Arduino.svg)](https://github.com/arduino/Arduino/releases/latest)
- 2. [`Earle Philhower's arduino-pico core v2.6.3+`](https://github.com/earlephilhower/arduino-pico) for **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, etc. [![GitHub release](https://img.shields.io/github/release/earlephilhower/arduino-pico.svg)](https://github.com/earlephilhower/arduino-pico/releases/latest)
+ 2. [`Earle Philhower's arduino-pico core v2.7.1+`](https://github.com/earlephilhower/arduino-pico) for **RASPBERRY_PI_PICO_W with CYW43439 WiFi**, etc. [![GitHub release](https://img.shields.io/github/release/earlephilhower/arduino-pico.svg)](https://github.com/earlephilhower/arduino-pico/releases/latest)
 
 ---
 ---
@@ -134,6 +142,104 @@ This class is really similar to the `AsyncPrinter`, but it can buffer some of th
 
 It is exactly what it sounds like. This is a standard, synchronous blocking TCP Client you're used to.
 
+
+---
+---
+
+### Examples
+
+ 1. [AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client)
+ 2. [AsyncTCP_Server](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Server)
+    
+    
+---
+
+### Example [AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client)
+
+Please take a look at other examples, as well.
+
+#### 1. File [AsyncTCP_Client.ino](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client/AsyncTCP_Client.ino)
+
+https://github.com/khoih-prog/AsyncTCP_RP2040W/blob/f6ed4d368360f8c725f9e68bc7d5bae6ad5e6d96/examples/ClientServer/AsyncTCP_Client/AsyncTCP_Client.ino#L13-L200
+
+---
+---
+
+### Debug Terminal Output Samples
+
+#### 1. [AsyncTCP_Server](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Server) on RASPBERRY_PI_PICO_W with CYW43439 WiFi
+
+```cpp
+Start AsyncTCP_Server on RASPBERRY_PI_PICO_W with RP2040W CYW43439 WiFi
+AsyncTCP_RP2040W v1.2.0
+Connecting to SSID: HueNet
+SSID: HueNet
+Local IP Address: 192.168.2.128
+AsyncTCPServer is @ IP: 192.168.2.128, port: 5698
+
+New client has been connected to server, IP: 192.168.2.118
+Data received from client 192.168.2.118 
+This is from AsyncTCPClient @ 192.168.2.118
+```
+
+---
+
+#### 2. [AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client) on RASPBERRY_PI_PICO_W with CYW43439 WiFi
+
+Following is debug terminal output when running example [AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client) on `RASPBERRY_PI_PICO_W using CYW43439 WiFi`, to demo the `AsyncTCP_Client` auto-reconnects to `AsyncTCP_Server` if connection is lost (network, power-recycle, etc.)
+
+
+```cpp
+Start AsyncTCP_Client on RASPBERRY_PI_PICO_W with RP2040W CYW43439 WiFi
+AsyncTCP_RP2040W v1.2.0
+Connecting to SSID: HueNet
+SSID: HueNet
+Local IP Address: 192.168.2.118
+
+AsyncTCPClient has been connected to Server 192.168.2.128, port 5698 
+
+********************
+New replyToServer
+
+Data received from 192.168.2.128 
+You've connected to AsyncTCPServer @ 192.168.2.128
+********************
+New replyToServer
+
+Data received from 192.168.2.128 
+You've connected to AsyncTCPServer @ 192.168.2.128
+********************
+New replyToServer
+
+Data received from 192.168.2.128 
+You've connected to AsyncTCPServer @ 192.168.2.128
+********************
+New replyToServer
+
+Reconnecting to Server 192.168.2.128, port 5698 
+
+AsyncTCPClient has been disconnected from Server 192.168.2.128, port 5698 
+
+Reconnecting to Server 192.168.2.128, port 5698 
+
+Reconnecting to Server 192.168.2.128, port 5698 
+
+Reconnecting to Server 192.168.2.128, port 5698 
+
+AsyncTCPClient has been connected to Server 192.168.2.128, port 5698 
+
+********************
+New replyToServer
+
+Data received from 192.168.2.128 
+You've connected to AsyncTCPServer @ 192.168.2.128
+********************
+New replyToServer
+
+Data received from 192.168.2.128 
+You've connected to AsyncTCPServer @ 192.168.2.128
+```
+
 ---
 ---
 
@@ -141,6 +247,7 @@ It is exactly what it sounds like. This is a standard, synchronous blocking TCP 
 
 1. [AsyncWebServer_RP2040W](https://github.com/khoih-prog/AsyncWebServer_RP2040W) [![GitHub release](https://img.shields.io/github/release/khoih-prog/AsyncWebServer_RP2040W.svg)](https://github.com/khoih-prog/AsyncWebServer_RP2040W/releases/latest)
 2. [AsyncHTTPRequest_RP2040W](https://github.com/khoih-prog/AsyncHTTPRequest_RP2040W) [![GitHub release](https://img.shields.io/github/release/khoih-prog/AsyncHTTPRequest_RP2040W.svg)](https://github.com/khoih-prog/AsyncHTTPRequest_RP2040W/releases/latest)
+
 
 ---
 ---
@@ -184,6 +291,8 @@ Submit issues to: [AsyncTCP_RP2040W issues](https://github.com/khoih-prog/AsyncT
 
 1. **RASPBERRY_PI_PICO_W with CYW43439 WiFi**
 2. Add astyle using `allman` style. Restyle the library
+3. Add complex auto-reconnect `AsyncTCPClient` and `AsyncTCP_Server` examples
+4. Improve `README.md` so that links can be used in other sites, such as `PIO`
 
 
 ---
