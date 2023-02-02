@@ -34,7 +34,6 @@
   * [1. AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client)
   * [2. AsyncTCP_Server](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Server)
 * [Example AsyncTCP_Client](#Example-AsyncTCP_Client)
-  * [1. File AsyncTCP_Client.ino](#1-File-AsyncTCP_Client)
 * [Debug Terminal Output Samples](#debug-terminal-output-samples)
   * [1. AsyncTCP_Server on RASPBERRY_PI_PICO_W with CYW43439 WiFi](#1-AsyncTCP_Server-on-RASPBERRY_PI_PICO_W-with-CYW43439-WiFi)
   * [2. AsyncTCP_Client on RASPBERRY_PI_PICO_W with CYW43439 WiFi](#2-AsyncTCP_Client-on-RASPBERRY_PI_PICO_W-with-CYW43439-WiFi)
@@ -157,8 +156,6 @@ It is exactly what it sounds like. This is a standard, synchronous blocking TCP 
 ### Example [AsyncTCP_Client](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client)
 
 Please take a look at other examples, as well.
-
-#### 1. File [AsyncTCP_Client.ino](https://github.com/khoih-prog/AsyncTCP_RP2040W/tree/main/examples/ClientServer/AsyncTCP_Client/AsyncTCP_Client.ino)
 
 https://github.com/khoih-prog/AsyncTCP_RP2040W/blob/f6ed4d368360f8c725f9e68bc7d5bae6ad5e6d96/examples/ClientServer/AsyncTCP_Client/AsyncTCP_Client.ino#L13-L200
 
