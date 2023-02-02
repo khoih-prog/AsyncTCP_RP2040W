@@ -26,7 +26,7 @@
 
 ### Releases v1.2.0
 
-1. Add complex auto-reconnect `AsyncTCPClient` and `AsyncTCP_Server` examples
+1. Add complex auto-reconnect `AsyncTCP_Client` and `AsyncTCP_Server` examples
 2. Improve `README.md` so that links can be used in other sites, such as `PIO`
 
 ### Releases v1.1.0
